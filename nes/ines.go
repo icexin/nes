@@ -19,17 +19,7 @@ type iNESFileHeader struct {
 	_        [7]byte // unused padding
 }
 
-// LoadNESFile reads an iNES file (.nes) and returns a Cartridge on success.
-// http://wiki.nesdev.com/w/index.php/INES
-// http://nesdev.com/NESDoc.pdf (page 28)
-func LoadNESFile(path string) (*Cartridge, error) {
-	// open file
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
+func LoadNES(file io.Reader) (*Cartridge, error) {
 	// read file header
 	header := iNESFileHeader{}
 	if err := binary.Read(file, binary.LittleEndian, &header); err != nil {
@@ -81,4 +71,18 @@ func LoadNESFile(path string) (*Cartridge, error) {
 
 	// success
 	return NewCartridge(prg, chr, mapper, mirror, battery), nil
+}
+
+// LoadNESFile reads an iNES file (.nes) and returns a Cartridge on success.
+// http://wiki.nesdev.com/w/index.php/INES
+// http://nesdev.com/NESDoc.pdf (page 28)
+func LoadNESFile(path string) (*Cartridge, error) {
+	// open file
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return LoadNES(file)
 }

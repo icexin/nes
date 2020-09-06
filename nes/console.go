@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"image"
 	"image/color"
+	"io"
 	"os"
 	"path"
 )
@@ -19,8 +20,8 @@ type Console struct {
 	RAM         []byte
 }
 
-func NewConsole(path string) (*Console, error) {
-	cartridge, err := LoadNESFile(path)
+func NewConsoleReader(r io.Reader) (*Console, error) {
+	cartridge, err := LoadNES(r)
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +39,16 @@ func NewConsole(path string) (*Console, error) {
 	console.APU = NewAPU(&console)
 	console.PPU = NewPPU(&console)
 	return &console, nil
+}
+
+func NewConsole(path string) (*Console, error) {
+	// open file
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return NewConsoleReader(file)
 }
 
 func (console *Console) Reset() {
